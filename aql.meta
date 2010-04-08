@@ -1,0 +1,8 @@
+((egg "aql.egg"
+      (synopsis "Aviary Query Language: A DSL to generate SQL for Chicken Scheme.")
+      (author "Stephen Eilert")
+      (category databases)
+      (licence "BSD")
+      (doc-from-wiki)
+      (test-depends test)
+      (files "aql.scm" "aql.setup" "aql.html")))

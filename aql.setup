@@ -1,0 +1,8 @@
+(compile -s -O2 aql.scm -j aql)
+(compile -s -O2 aql.import.scm)
+
+(install-extension
+ 'aql
+ '("aql.so" "aql.import.so")
+ '((version 0.1)
+   (documentation "aql.html")))
