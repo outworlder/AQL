@@ -1,0 +1,3 @@
+==== AVIARY QUERY LANGUAGE
+
+A DSL for generating SQL expressions for Chicken Scheme.
