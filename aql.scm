@@ -1,5 +1,5 @@
 (module aql
-  (SELECT INSERT)
+  (from where SELECT WHERE)
 
   (import chicken scheme srfi-1 data-structures)
 
@@ -10,7 +10,34 @@
   ;; TODO: aggregation (count, all, sum, etc)
   ;; TODO: Include field renaming
   (define (SELECT tables #!key (fields "*"))
-    (string-append "SELECT " (*result-fields* fields) " FROM " (*result-fields* tables)))
+    (display (string-append "SELECT " (*result-fields* fields) " FROM " (*result-fields* tables))))
+
+  (define-syntax from
+    (syntax-rules ()
+      ([_ tables () body ...] (with-output-to-string
+                                (lambda ()
+                                  (SELECT 'tables)
+                                  body ...)))
+       ([_ tables (db-fields ...) body ...] (with-output-to-string
+                                              (lambda ()
+                                                (SELECT (quote tables) fields: '(db-fields ...))
+                                                body ...)))))
+
+  (define-syntax where
+    (syntax-rules ()
+      ([_ (binary-operator field value) body ...] (begin
+                                                     (WHERE '(binary-operator field value))
+                                                     body ... ))
+      ([_ (unary-operator value) body ...] (begin
+                                             (WHERE '(unary-operator value))
+                                             body ...))))
+
+  ;; (= "test" "blah") -> " 'test' = 'blah'
+  (define (WHERE expression)
+    (let ([operator (car expression)]
+          [operand1 (cadr expression)]
+          [operand2 (caddr expression)])
+      (display (string-append " WHERE " (*quote* operand1 #t) (->string operator) (*quote* operand2 #t)))))
 
   (define (*result-fields* columns #!key quote-fields)
     (if (list? columns)
@@ -29,7 +56,7 @@
     (and (list? list) (every pair? list)))
 
   ;; alist of field values or just the values
-  (define (INSERT table values #!key fields (marks "?"))
+  (define (insert table values #!key fields (marks "?"))
     (let ([fields-string (if fields
                              (string-append "("
                                             (*result-fields* fields)
@@ -46,5 +73,7 @@
                                                   "If using markers, the list of fields must be informed.")))
                                               (*result-fields* (map (lambda (value) marks) fields)))
                                             (*result-fields* values quote-fields: #t)) ")")])
-    (string-append "INSERT INTO " (->string table) " " fields-string " VALUES " values-string)))
+      (string-append "INSERT INTO " (->string table) " " fields-string " VALUES " values-string)))
+
+
   )                                     ; Module
