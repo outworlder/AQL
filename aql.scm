@@ -1,5 +1,5 @@
 (module aql
-  (from where order insert update limit SELECT WHERE)
+  (from where order insert update delete limit SELECT)
 
   (import chicken scheme srfi-1 data-structures)
 
@@ -27,12 +27,19 @@
 
   (define-syntax where
     (syntax-rules ()
-      ([_ (binary-operator field value) body ...] (begin
-                                                    (WHERE '(binary-operator field value))
+      ([_ (binary-operator op1 op2) body ...] (display-blocks
+                                                " WHERE "
+                                                (*quote* 'op1 #t)
+                                                " "
+                                                (->str binary-operator)
+                                                " "
+                                                (*quote* 'op2 #t)
                                                     body ... ))
-      ([_ (unary-operator value) body ...] (begin
-                                             (WHERE-unary '(unary-operator value))
-                                             body ...))))
+      ([_ (unary-operator op) body ...] (display-blocks
+                                         " WHERE "
+                                         (->str unary-operator)
+                                         (*quote* 'op #t)
+                                         body ...))))
 
   (define-syntax order
     (syntax-rules(by asc desc)
@@ -50,20 +57,6 @@
       ([_ body ...] (with-output-to-string
                       (lambda ()
                         body ...)))))
-  
-  ;; (= "test" "blah") -> " 'test' = 'blah'
-  (define (WHERE expression)
-    (let ([operator (car expression)]
-          [operand1 (cadr expression)]
-          [operand2 (caddr expression)])
-      (display (string-append " WHERE " (*quote* operand1 #t) (->string operator) (*quote* operand2 #t)))
-      ""))
-
-  (define (WHERE-unary expression)
-    (let ([operator (car expression)]
-          [operand (cadr expression)])
-      (display (string-append " WHERE " (->string operator) (*quote* operand #t))))
-    "")
 
   (define (*result-fields* columns #!key quote-fields)
     (if (list? columns)
