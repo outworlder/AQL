@@ -1,5 +1,5 @@
 (module aql
-  (from where order insert update SELECT WHERE)
+  (from where order insert update limit SELECT WHERE)
 
   (import chicken scheme srfi-1 data-structures)
 
@@ -39,6 +39,11 @@
       ([_ by (db-fields ...) asc] (display (string-append " ORDER BY " (*result-fields* 'db-fields ...) " ASC ")))
       ([_ by (db-fields ...) desc] (display (string-append " ORDER BY " (*result-fields* 'db-fields ...) " DESC ")))))
 
+  (define-syntax limit
+    (syntax-rules ()
+      ([_ limit] (display-blocks
+                  " LIMIT "
+                  limit))))
 
   (define-syntax macrowrap
     (syntax-rules ()
@@ -51,12 +56,14 @@
     (let ([operator (car expression)]
           [operand1 (cadr expression)]
           [operand2 (caddr expression)])
-      (display (string-append " WHERE " (*quote* operand1 #t) (->string operator) (*quote* operand2 #t)))))
+      (display (string-append " WHERE " (*quote* operand1 #t) (->string operator) (*quote* operand2 #t)))
+      ""))
 
   (define (WHERE-unary expression)
     (let ([operator (car expression)]
           [operand (cadr expression)])
-      (display (string-append " WHERE " (->string operator) (*quote* operand #t)))))
+      (display (string-append " WHERE " (->string operator) (*quote* operand #t))))
+    "")
 
   (define (*result-fields* columns #!key quote-fields)
     (if (list? columns)
@@ -90,11 +97,12 @@
   (define-syntax update-values-stmt
     (syntax-rules ()
       ([_ ((col val) ...)] (display-blocks 
-                             (*result-fields* (list (string-append (->str col) " = " (*result-fields* val #t)) ...) #f)))))
+                             (*result-fields* (list (string-append (->str col) " = " (*result-fields* 'val #t)) ...) #f)))))
 
   (define-syntax insert
     (syntax-rules ()
-      ([_ table (values ...)] (insert-stmt (->string 'table) " " (insert-values (values ...))))))
+      ([_ table (values ...)] (insert-stmt (->string 'table) " " (insert-values (values ...))))
+      ([_ table (fields ...) (values ...)] (insert-stmt (->string 'table) " (" (*result-fields* '(fields ...) #f) ") " (insert-values (values ...))))))
 
   (define-syntax insert-stmt
     (syntax-rules ()
@@ -116,4 +124,16 @@
                       (display body) ... ""))))
  
 
+  (define-syntax delete
+    (syntax-rules ()
+      ([_ table body ...] (delete-stmt (->string 'table) " " body ...))))
+
+  (define-syntax delete-stmt
+    (syntax-rules ()
+      ([_ body ...] (macrowrap (display-blocks
+                                "DELETE FROM "
+                                body ...
+                                ";")))))
+
+  
   )                                     ; Module
