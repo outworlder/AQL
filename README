@@ -4,5 +4,5 @@ A DSL for generating SQL expressions for Chicken Scheme.
 
 Examples:
 
-* #;2> (from authentication (id login password) (where (= id 1)))
-"SELECT id,login,password FROM authentication WHERE id=1"
+* #;2> (from authentication (id login password) (where (= login )))
+"SELECT id,login,password FROM authentication WHERE id=1"x
