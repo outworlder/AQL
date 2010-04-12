@@ -1,15 +1,26 @@
 (module aql
-  (from where order insert update delete limit SELECT)
+  (from where order insert update delete limit)
 
   (import chicken scheme srfi-1 data-structures)
 
+  (define-for-syntax (*result-fields* columns #!key quote-fields)
+    (if (list? columns)
+        (string-intersperse
+         (map (lambda (column)
+                (*quote* column quote-fields)) columns) ",")
+        (*quote* columns quote-fields)))
+
+  (define-for-syntax (*quote* field enabled)
+    (let ([value (->string field)])
+      (if (and (string? field) enabled)
+          (string-append "\"" value "\"")
+          value)))
+  
   ;; TODO: Joins
   ;; TODO: Where
-  ;; TODO: Order by
-  ;; TODO: LIMIT
   ;; TODO: aggregation (count, all, sum, etc)
   ;; TODO: Include field renaming
-  (define (SELECT tables #!key (fields "*"))
+  (define-for-syntax (SELECT tables #!key (fields "*"))
     (display (string-append "SELECT " (*result-fields* fields) " FROM " (*result-fields* tables))))
 
   (define-syntax ->str
@@ -57,19 +68,6 @@
       ([_ body ...] (with-output-to-string
                       (lambda ()
                         body ...)))))
-
-  (define (*result-fields* columns #!key quote-fields)
-    (if (list? columns)
-        (string-intersperse
-         (map (lambda (column)
-                (*quote* column quote-fields)) columns) ",")
-        (*quote* columns quote-fields)))
-
-  (define (*quote* field enabled)
-    (let ([value (->string field)])
-      (if (and (string? field) enabled)
-          (string-append "\"" value "\"")
-          value)))
 
   (define (alist? list)
     (and (list? list) (every pair? list)))
