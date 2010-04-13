@@ -20,9 +20,17 @@
   ;; TODO: Where
   ;; TODO: aggregation (count, all, sum, etc)
   ;; TODO: Include field renaming
-  (define-for-syntax (SELECT tables #!key (fields "*"))
-    (display (string-append "SELECT " (*result-fields* fields) " FROM " (*result-fields* tables))))
 
+  (define-syntax select
+    (syntax-rules ()
+      ([_ table fields] (display-blocks
+                         "SELECT "
+                         (if fields
+                             (*result-fields* fields)
+                             "*")
+                         " FROM "
+                         (*result-fields* table)))))
+  
   (define-syntax ->str
     (syntax-rules ()
       ([_ value] (->string 'value))))
@@ -30,10 +38,10 @@
   (define-syntax from
     (syntax-rules ()
       ([_ tables () body ...] (macrowrap
-                               (SELECT 'tables)
+                               (select 'tables #f)
                                body ...))
       ([_ tables (db-fields ...) body ...] (macrowrap
-                                            (SELECT (quote tables) fields: '(db-fields ...))
+                                            (select (quote tables) fields: '(db-fields ...))
                                             body ...))))
 
   (define-syntax where
@@ -44,12 +52,12 @@
                                                 " "
                                                 (->str binary-operator)
                                                 " "
-                                                (*quote* 'op2 #t)
+                                                (*quote* op2 #t)
                                                     body ... ))
       ([_ (unary-operator op) body ...] (display-blocks
                                          " WHERE "
                                          (->str unary-operator)
-                                         (*quote* 'op #t)
+                                         (*quote* op #t)
                                          body ...))))
 
   (define-syntax order
