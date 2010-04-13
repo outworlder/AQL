@@ -23,13 +23,13 @@
 
   (define-syntax select
     (syntax-rules ()
-      ([_ table fields] (display-blocks
+      ([_ table (fields ...)] (display-blocks
                          "SELECT "
-                         (if fields
-                             (*result-fields* fields)
+                         (if (not (null? '(fields ...)))
+                             (*result-fields* '(fields ...))
                              "*")
                          " FROM "
-                         (*result-fields* table)))))
+                         (*result-fields* 'table)))))
   
   (define-syntax ->str
     (syntax-rules ()
@@ -38,10 +38,10 @@
   (define-syntax from
     (syntax-rules ()
       ([_ tables () body ...] (macrowrap
-                               (select 'tables #f)
+                               (select tables ())
                                body ...))
       ([_ tables (db-fields ...) body ...] (macrowrap
-                                            (select (quote tables) fields: '(db-fields ...))
+                                            (select tables (db-fields ...))
                                             body ...))))
 
   (define-syntax where
