@@ -58,7 +58,9 @@
                                          " WHERE "
                                          (->str unary-operator)
                                          (*quote* op #t)
-                                         body ...))))
+                                         body ...))
+      ([_ ((expr ...)...)] (begin
+                        (where (expr ...) ...)))))
 
   (define-syntax order
     (syntax-rules(by asc desc)
