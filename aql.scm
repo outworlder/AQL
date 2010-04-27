@@ -1,7 +1,7 @@
 (module aql
   (from where order insert update delete limit)
 
-  (import chicken scheme srfi-1 data-structures)
+  (import chicken scheme data-structures)
 
   (define-for-syntax (*result-fields* columns #!key quote-fields)
     (if (list? columns)
@@ -14,10 +14,11 @@
     (let ([value (->string field)])
       (if (and (string? field) enabled)
           (string-append "\"" value "\"")
-          value)))
+          (if (symbol? field)
+              (symbol->string field)
+              value))))
   
   ;; TODO: Joins
-  ;; TODO: Where
   ;; TODO: aggregation (count, all, sum, etc)
   ;; TODO: Include field renaming
 
@@ -43,25 +44,45 @@
       ([_ tables (db-fields ...) body ...] (macrowrap
                                             (select tables (db-fields ...))
                                             body ...))))
-
   (define-syntax where
     (syntax-rules ()
       ([_ (binary-operator op1 op2) body ...] (display-blocks
-                                                " WHERE "
-                                                (*quote* 'op1 #t)
-                                                " "
-                                                (->str binary-operator)
-                                                " "
-                                                (*quote* op2 #t)
-                                                    body ... ))
+                                               " WHERE "
+                                               (where-handler '(binary-operator op1 op2) "")
+                                               body ... ))
       ([_ (unary-operator op) body ...] (display-blocks
                                          " WHERE "
-                                         (->str unary-operator)
-                                         (*quote* op #t)
-                                         body ...))
-      ([_ ((expr ...)...)] (begin
-                        (where (expr ...) ...)))))
+                                         (where-handler '(unary-operator op1) "")
+                                         body ...))))
 
+  (define-for-syntax (where-handler tree fragment)
+    (if (null? tree)
+        fragment
+        (let ([operator (car tree)]
+              [operand1 (cadr tree)]
+              [operand2 (if (>= (length tree) 3)
+                            (caddr tree)
+                            #f)])
+          (if (eq? operator 'quote)     ;This is ugly
+              (->string operand1)
+              (string-append fragment 
+                             (if operand2
+                                 (begin
+                                   (string-append
+                                    (if (list? operand1)
+                                        (where-handler operand1 fragment)
+                                        (eval operand1))
+                                    " " (->string operator) " "
+                                    (if (list? operand2)
+                                        (where-handler operand2 fragment)
+                                        (*quote* (eval operand2) #t))))
+                                 (begin
+                                   (string-append
+                                    " " (->string operator) " "
+                                    (if (list? operand1)
+                                        (where-handler operand1 fragment)
+                                        (*quote* operand1 #t))))))))))
+  
   (define-syntax order
     (syntax-rules(by asc desc)
       ([_ by (db-fields ...) asc] (display (string-append " ORDER BY " (*result-fields* 'db-fields ...) " ASC ")))
@@ -78,9 +99,6 @@
       ([_ body ...] (with-output-to-string
                       (lambda ()
                         body ...)))))
-
-  (define (alist? list)
-    (and (list? list) (every pair? list)))
 
   (define-syntax update
     (syntax-rules ()
