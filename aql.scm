@@ -44,44 +44,38 @@
       ([_ tables (db-fields ...) body ...] (macrowrap
                                             (select tables (db-fields ...))
                                             body ...))))
+
   (define-syntax where
     (syntax-rules ()
-      ([_ (binary-operator op1 op2) body ...] (display-blocks
-                                               " WHERE "
-                                               (where-handler '(binary-operator op1 op2) "")
-                                               body ... ))
-      ([_ (unary-operator op) body ...] (display-blocks
-                                         " WHERE "
-                                         (where-handler '(unary-operator op1) "")
-                                         body ...))))
+      ([_ forms ...] (display-blocks
+                      " WHERE "
+                      (where-stmt forms ...)))))
+  
+  (define-syntax where-subform
+    (syntax-rules ()
+      ([_ (binary-operator op1 op2)] (display-blocks
+                                      (*quote* op1 #t)
+                                      " "
+                                      (->str binary-operator)
+                                      " "
+                                      (*quote* op2 #t)))
+      ([_ (unary-operator op1)] (display-blocks
+                                (->str unary-operator)
+                                " "
+                                (*quote* op1 #t)))))
 
-  (define-for-syntax (where-handler tree fragment)
-    (if (null? tree)
-        fragment
-        (let ([operator (car tree)]
-              [operand1 (cadr tree)]
-              [operand2 (if (>= (length tree) 3)
-                            (caddr tree)
-                            #f)])
-          (if (eq? operator 'quote)     ;This is ugly
-              (->string operand1)
-              (string-append fragment 
-                             (if operand2
-                                 (begin
-                                   (string-append
-                                    (if (list? operand1)
-                                        (where-handler operand1 fragment)
-                                        (eval operand1))
-                                    " " (->string operator) " "
-                                    (if (list? operand2)
-                                        (where-handler operand2 fragment)
-                                        (*quote* (eval operand2) #t))))
-                                 (begin
-                                   (string-append
-                                    " " (->string operator) " "
-                                    (if (list? operand1)
-                                        (where-handler operand1 fragment)
-                                        (*quote* operand1 #t))))))))))
+  
+  (define-syntax where-stmt
+    (syntax-rules ()
+      ([_ (binary-operator (form . forms) (moreforms . evenmore))] 
+       (display-blocks
+         (where-stmt (form . forms))
+         " "
+         (->str binary-operator)
+         " "
+         (where-stmt (moreforms . evenmore))))
+      ([_ (binary-operator op1 op2)] (where-subform (binary-operator op1 op2)))
+      ([_ (unary-operator op)] (where-subform (unary-operator op1)))))
   
   (define-syntax order
     (syntax-rules(by asc desc)
