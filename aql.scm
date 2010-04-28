@@ -84,8 +84,8 @@
   
   (define-syntax order
     (syntax-rules(by asc desc)
-      ([_ by (db-fields ...) asc] (display (string-append " ORDER BY " (*result-fields* 'db-fields ...) " ASC ")))
-      ([_ by (db-fields ...) desc] (display (string-append " ORDER BY " (*result-fields* 'db-fields ...) " DESC ")))))
+      ([_ by (db-fields ...) asc] (display (string-append " ORDER BY " (*result-fields* 'db-fields ...) " ASC")))
+      ([_ by (db-fields ...) desc] (display (string-append " ORDER BY " (*result-fields* 'db-fields ...) " DESC")))))
 
   (define-syntax limit
     (syntax-rules ()
