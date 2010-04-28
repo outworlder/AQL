@@ -74,6 +74,11 @@
          (->str binary-operator)
          " "
          (where-stmt (moreforms . evenmore))))
+      ([_ (unary-operator (form . forms))]
+       (display-blocks
+        (->str unary-operator)
+        " "
+        (where-stmt (form . forms))))
       ([_ (binary-operator op1 op2)] (where-subform (binary-operator op1 op2)))
       ([_ (unary-operator op)] (where-subform (unary-operator op1)))))
   
