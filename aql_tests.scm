@@ -19,5 +19,5 @@
 
 (test-group "update"                    ; Whitespace issues
             (test "update everything, 1 field" "UPDATE test SET field1 = 1;" (update test ((field1 1))))
-            (test "update everything, more than 1 field" "UPDATE test SET field1 = 1, field2 = 2;" (update test ((field1 1) (field2 2))))
-            (test "update 1 row, 1 field" "UPDATE test SET field2 = 1 WHERE field1 = 1;" (update test ((field1 1)) (where (= 'field1 1)))))
+            (test "update everything, more than 1 field" "UPDATE test SET field1 = 1,field2 = 2;" (update test ((field1 1) (field2 2))))
+            (test "update 1 row, 1 field" "UPDATE test SET field2 = 1 WHERE field1 = 1;" (update test ((field2 1)) (where (= 'field1 1)))))

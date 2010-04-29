@@ -101,14 +101,13 @@
 
   (define-syntax update
     (syntax-rules ()
-      ([_ table ((col val) ...) body ...] (update-stmt table " SET "(update-values-stmt ((col val) ...)) " " body ...))))
+      ([_ table ((col val) ...) body ...] (update-stmt table " SET "(update-values-stmt ((col val) ...)) body ...))))
 
   (define-syntax update-stmt
     (syntax-rules ()
       ([_ table body ...] (macrowrap (display-blocks
                                       "UPDATE "
                                       (->str table)
-                                      " "
                                       body ...
                                       ";")))))
 
@@ -144,7 +143,7 @@
 
   (define-syntax delete
     (syntax-rules ()
-      ([_ table body ...] (delete-stmt (->string 'table) " " body ...))))
+      ([_ table body ...] (delete-stmt (->string 'table) body ...))))
 
   (define-syntax delete-stmt
     (syntax-rules ()
