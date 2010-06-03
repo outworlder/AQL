@@ -52,7 +52,13 @@
                       (where-stmt forms ...)))))
   
   (define-syntax where-subform
-    (syntax-rules ()
+    (syntax-rules (?)
+      ([_ (binary-operator op1 ?)] (display-blocks
+                                    (*quote* op1 #t)
+                                    " "
+                                    (->str binary-operator)
+                                    " "
+                                    "?"))
       ([_ (binary-operator op1 op2)] (display-blocks
                                       (*quote* op1 #t)
                                       " "
@@ -66,7 +72,8 @@
 
   
   (define-syntax where-stmt
-    (syntax-rules ()
+    (syntax-rules (?)
+      ([_ (binary-operator op1 ?)] (where-subform (binary-operator op1 ?)))
       ([_ (binary-operator (form . forms) (moreforms . evenmore))] 
        (display-blocks
          (where-stmt (form . forms))
@@ -80,7 +87,7 @@
         " "
         (where-stmt (form . forms))))
       ([_ (binary-operator op1 op2)] (where-subform (binary-operator op1 op2)))
-      ([_ (unary-operator op)] (where-subform (unary-operator op1)))))
+      ([_ (unary-operator op)] (where-subform (unary-operator op)))))
   
   (define-syntax order
     (syntax-rules(by asc desc)
