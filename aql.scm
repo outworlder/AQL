@@ -1,5 +1,5 @@
 (module aql
-  (from where order insert update delete limit)
+  (from where order insert update delete limit sql-literal)
 
   (import chicken scheme data-structures)
 
@@ -45,6 +45,13 @@
                                             (select tables (db-fields ...))
                                             body ...))))
 
+  (define-syntax sql-literal
+    (syntax-rules ()
+      ([_ str]
+       (display-blocks
+	" "
+	(->str str)))))
+  
   (define-syntax where
     (syntax-rules ()
       ([_ forms ...] (display-blocks
