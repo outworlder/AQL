@@ -1,5 +1,5 @@
-(compile -s -O2 aql.scm -j aql)
-(compile -s -O2 aql.import.scm)
+(compile -s -O2 -compile-syntax aql.scm -j aql)
+(compile -s -O2 -compile-syntax aql.import.scm)
 
 (install-extension
  'aql
