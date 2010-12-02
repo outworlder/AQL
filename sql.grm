@@ -1,0 +1,29 @@
+;; -*- scheme -*-
+(use lalr)
+
+(define select-parser
+ (lalr-parser
+  ; Terminal symbols
+  (select
+   from
+   where
+   group-by
+   having
+   distinct
+   all
+   limit
+   offset
+   )
+  (select
+   
+   )
+  (ID
+   (left: + -)
+   (left: * /)
+   (nonassoc: uminus))
+  (e (e + e)              : (+ $1 $3)
+     (e - e)              : (- $1 $3)
+     (e * e)              : (* $1 $3)
+     (e / e)              : (/ $1 $3)
+     (- e (prec: uminus)) : (- $2)
+     (ID)                 : $1)))
