@@ -13,7 +13,7 @@
   (define-for-syntax (*quote* field enabled)
     (let ([value (->string field)])
       (if (and (string? field) enabled)
-          (string-append "\"" value "\"")
+          (string-append "\'" value "\'")
           (if (symbol? field)
               (symbol->string field)
               value))))
