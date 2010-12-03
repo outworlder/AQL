@@ -1,29 +1,82 @@
 (module aql
-  (from where order insert update delete limit sql-literal)
+  (select)
 
-  (import chicken scheme data-structures)
+  (import chicken scheme data-structures srfi-1)
 
-  (define-syntax aql
-    (syntax-rules ()
-      ([_ sexp]
-       (quote sexp))))
+  '(* / % + - << >> & | < <=  > >= = != <> is not in like glob match regexp and or between like is-null is-not-null not in exists collate (cast as))
+  (define where-operators
+    '((= binary)
+      (* binary)
+      (/ binary)
+      (% binary)
+      (+ binary)
+      (- binary)
+      (< binary)
+      (> binary)
+      (= binary)
+      (|| binary)
+      (<> binary)
+      (is binary)
+      (is-not binary)
+      (in binary)
+      (not unary)
+      (glob unary function)
+      (match unary function)
+      (regexp unary function)
+      (and binary)
+      (or binary)
+      (between binary)
+      (like binary)
+      (exists unary select)
+      (collate unary function)))
 
-  (define (aql->sql sexp)
+  (define (operator? element)
+    (let ([op (if (list? element)
+                  (car element)
+                  element)])
+      (assoc element where-operators)))
+
+  (define (operator->string element)
+    )
+  
+  (define (expression expression)
+    (fold (lambda (x xs)
+            (if (operator? element)
+                (operator->string element))) ))
+
+  (define (has-sublists? list)
+    (any list? list))
+  
+  (define (select table #!key columns where limit offset)
+    (string-intersperse "select"
+                        (column-list columns)
+                        "from" table
+                        (if where
+                            (where where))
+                        (if limit
+                            (limit limit))
+                        (if offset
+                            (offset offset))))
+
+  (define (where expression)
     ())
 
-  (define (select-stmt table columns #!key where)
-    (string-append "select " (columns columns) table))
-
-  (define (where-stmt expression)
-    (string-intersperse (list "where" (expression expression))))
-
-  (define (columns col-list)
-    (string-intersperse  (map (lambda (column))
-                              (append "[" (->string column) "]") col-list) ","))
-
-  (define (infix-postfix))
+;  (and  (like 'field "%blah")
+ ;       (= 'field 1)
+  ;      (in 'id (select table columns: '(id))))
   
-  )                                     ; Module
+
+  (define (column-list columns)
+    (if (eq? columns '*)
+        "*"
+        (string-intersperse (map (lambda (column)
+                                   (string-append "[" column "]")) columns) ", ")))
+
+  (define (consume expression)
+    (fold ))
+  
+  
+    )                                     ; Module
 
 
 
